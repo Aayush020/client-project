@@ -1,0 +1,546 @@
+from flask import Flask, render_template, request, redirect, session
+from flask_mail import Mail, Message
+from datetime import date, timedelta
+import sqlite3
+
+app = Flask(__name__)
+app.secret_key = "supersecretkey"
+
+# ================= MAIL CONFIG =================
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = "porwalayush020@gmail.com"
+app.config['MAIL_PASSWORD'] = "nmcz ofuo wfay gckj"
+app.config['MAIL_DEFAULT_SENDER'] = app.config['MAIL_USERNAME']
+app.config['MAIL_DEBUG'] = True
+
+mail = Mail(app)
+
+# ================= DATABASE =================
+def get_db():
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row   # 🔑 Important for dict-like access
+    return conn
+
+def init_db():
+    db = get_db()
+    cur = db.cursor()
+
+    # Properties table
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS properties (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT, type TEXT, location TEXT,
+        size TEXT, price INTEGER, owner TEXT,
+        contact TEXT, status TEXT, sold_price INTEGER
+    )
+    """)
+
+    # Collaborations table
+# Collaboration Interactions
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS collaboration_interactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        collaboration_id INTEGER,
+        note TEXT,
+        date TEXT,
+        FOREIGN KEY(collaboration_id) REFERENCES collaborations(id)
+    )
+    """)
+
+
+    # Interactions table
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS interactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        property_id INTEGER,
+        customer_name TEXT,
+        contact TEXT,
+        notes TEXT,
+        date TEXT,
+        FOREIGN KEY(property_id) REFERENCES properties(id)
+    )
+    """)
+
+    db.commit()
+    db.close()
+
+init_db()
+
+# ================= USERS =================
+USERS = {
+    "ayush": {"password": "123", "role": "admin"},
+    "tanvi": {"password": "123", "role": "superadmin"}
+}
+
+# ---------------- LOGIN ----------------
+@app.route("/", methods=["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        user = USERS.get(request.form["username"])
+        if user and user["password"] == request.form["password"]:
+            session["username"] = request.form["username"]
+            session["role"] = user["role"]
+            return redirect("/dashboard")
+        return render_template("login.html", error="Invalid credentials")
+    return render_template("login.html")
+
+# ---------------- DASHBOARD ----------------
+# ---------------- DASHBOARD ----------------
+@app.route("/dashboard")
+def dashboard():
+    if "username" not in session:
+        return redirect("/login")
+
+    db = get_db()
+    cur = db.cursor()
+
+    # Total properties
+    cur.execute("SELECT COUNT(*) FROM properties")
+    total_properties = cur.fetchone()[0]
+
+    # Total sold properties
+    cur.execute("SELECT COUNT(*) FROM properties WHERE status='Sold'")
+    total_sold = cur.fetchone()[0]
+
+    # Collaboration stats
+    cur.execute("SELECT COUNT(*) FROM collaborations")
+    total_collab = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM collaborations WHERE pending_amount=0")
+    collab_completed = cur.fetchone()[0]
+
+    # Actual revenues
+    cur.execute("SELECT SUM(sold_price) FROM properties WHERE status='Sold'")
+    property_revenue = cur.fetchone()[0] or 0
+
+    cur.execute("SELECT SUM(paid_amount) FROM collaborations")
+    collaboration_revenue = cur.fetchone()[0] or 0
+
+    total_revenue = property_revenue + collaboration_revenue
+
+    # Adjusted revenue (-10%)
+    adjusted_property_revenue = int(property_revenue * 0.9)
+    adjusted_collaboration_revenue = int(collaboration_revenue * 0.9)
+    total_adjusted_revenue = adjusted_property_revenue + adjusted_collaboration_revenue
+
+    stats = {
+        "total_properties": total_properties,
+        "total_sold": total_sold,
+        "collab_completed": collab_completed,
+        "total_collab": total_collab,
+        "property_revenue": property_revenue,
+        "collaboration_revenue": collaboration_revenue,
+        "total_revenue": total_revenue,
+        "adjusted_property_revenue": adjusted_property_revenue,
+        "adjusted_collaboration_revenue": adjusted_collaboration_revenue,
+        "total_adjusted_revenue": total_adjusted_revenue
+    }
+
+    if session["role"] == "superadmin":
+        return render_template("dashboard_actual.html", stats=stats)
+
+    return render_template("dashboard_adjusted.html", stats=stats)
+
+# ---------------- PROPERTIES ----------------
+@app.route("/properties")
+def properties_page():
+    if "username" not in session:
+        return redirect("/login")
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("SELECT * FROM properties")
+    properties = cur.fetchall()
+    return render_template("properties.html", properties=properties)
+
+@app.route("/properties/add", methods=["GET", "POST"])
+def add_property():
+    if request.method == "POST":
+        db = get_db()
+        cur = db.cursor()
+        cur.execute("""
+        INSERT INTO properties
+        (title,type,location,size,price,owner,contact,status,sold_price)
+        VALUES (?,?,?,?,?,?,?,?,?)
+        """, (
+            request.form["title"],
+            request.form["type"],
+            request.form["location"],
+            request.form["size"],
+            request.form["price"],
+            request.form["owner"],
+            request.form["contact"],
+            "Available",
+            0
+        ))
+        db.commit()
+        return redirect("/properties")
+
+    return render_template("add_property.html")
+
+@app.route("/properties/<int:pid>", methods=["GET"])
+def property_detail(pid):
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("SELECT * FROM properties WHERE id=?", (pid,))
+    prop = cur.fetchone()
+    if not prop:
+        return "Property Not Found", 404
+
+    # Fetch interactions
+    cur.execute("SELECT * FROM interactions WHERE property_id=? ORDER BY date DESC", (pid,))
+    interactions = cur.fetchall()
+
+    # Convert prop to dict to add interactions
+    prop_dict = dict(prop)
+    prop_dict["interactions"] = interactions
+
+    return render_template("property_detail.html", prop=prop_dict)
+
+@app.route("/properties/<int:pid>/sold", methods=["POST"])
+def mark_sold(pid):
+    sold_price = int(request.form["sold_price"])
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute(
+        "UPDATE properties SET status='Sold', sold_price=? WHERE id=?",
+        (sold_price, pid)
+    )
+    db.commit()
+
+    msg = Message(
+        subject="Property Sold Notification",
+        recipients=[app.config['MAIL_USERNAME']]
+    )
+    msg.html = f"<h3>Property Sold</h3><p>Sold Price: ₹ {sold_price}</p>"
+    mail.send(msg)
+
+    return redirect("/properties")
+# ---------------- EDIT PROPERTY ----------------
+@app.route("/properties/<int:pid>/edit", methods=["GET", "POST"])
+def edit_property(pid):
+    if "username" not in session:
+        return redirect("/login")
+
+    db = get_db()
+    cur = db.cursor()
+
+    if request.method == "POST":
+        cur.execute("""
+            UPDATE properties SET
+            title=?,
+            type=?,
+            location=?,
+            size=?,
+            price=?,
+            owner=?,
+            contact=?,
+            status=?,
+            sold_price=?
+            WHERE id=?
+        """, (
+            request.form["title"],
+            request.form["type"],
+            request.form["location"],
+            request.form["size"],
+            request.form["price"],
+            request.form["owner"],
+            request.form["contact"],
+            request.form["status"],
+            int(request.form["sold_price"]),
+            pid
+        ))
+        db.commit()
+        return redirect(f"/properties/{pid}")
+
+    cur.execute("SELECT * FROM properties WHERE id=?", (pid,))
+    prop = cur.fetchone()
+
+    if not prop:
+        return "Property Not Found", 404
+
+    return render_template("edit_property.html", prop=prop)
+
+@app.route("/properties/<int:pid>/delete")
+def delete_property(pid):
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("DELETE FROM properties WHERE id=?", (pid,))
+    db.commit()
+    return redirect("/properties")
+
+# ---------------- INTERACTIONS ----------------
+@app.route("/properties/<int:pid>/interactions/add", methods=["POST"])
+def add_interaction(pid):
+    if "username" not in session:
+        return redirect("/login")
+
+    customer_name = request.form["customer_name"]
+    contact = request.form["contact"]
+    notes = request.form["notes"]
+    today = date.today().isoformat()
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("""
+        INSERT INTO interactions (property_id, customer_name, contact, notes, date)
+        VALUES (?, ?, ?, ?, ?)
+    """, (pid, customer_name, contact, notes, today))
+    db.commit()
+
+    return redirect(f"/properties/{pid}")
+
+# ================= COLLABORATIONS =================
+@app.route("/collaborations")
+def collaborations_page():
+    if "username" not in session:
+        return redirect("/login")
+
+    filter_type = request.args.get("filter")
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("SELECT * FROM collaborations")
+    data = cur.fetchall()
+
+    today = date.today()
+    processed = []
+
+    for c in data:
+        status = "Active"
+        due = date.fromisoformat(c["due_date"])
+
+        if due < today:
+            status = "Expired"
+        elif due <= today + timedelta(days=30):
+            status = "Due Soon"
+
+        row = dict(c)
+        row["status"] = status
+
+        # ---- FILTER LOGIC ----
+        if filter_type == "pending" and row["pending_amount"] == 0:
+            continue
+        if filter_type == "completed" and row["pending_amount"] != 0:
+            continue
+        if filter_type == "due_soon" and status != "Due Soon":
+            continue
+
+        processed.append(row)
+
+    # Sorting
+    if filter_type == "due_asc":
+        processed.sort(key=lambda x: x["due_date"])
+    elif filter_type == "due_desc":
+        processed.sort(key=lambda x: x["due_date"], reverse=True)
+
+    return render_template("collaborations.html", collaborations=processed)
+
+@app.route("/collaborations/add", methods=["GET", "POST"])
+def add_collaboration():
+    if request.method == "POST":
+        total = int(request.form["total_amount"])
+        paid = int(request.form["paid_amount"])
+
+        db = get_db()
+        cur = db.cursor()
+        cur.execute("""
+        INSERT INTO collaborations
+        (supplier,category,service,contact_person,contact_number,email,
+         start_date,due_date,total_amount,paid_amount,pending_amount)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        """, (
+            request.form["supplier"],
+            request.form["category"],
+            request.form["service"],
+            request.form["contact_person"],
+            request.form["contact_number"],
+            request.form["email"],
+            request.form["start_date"],
+            request.form["due_date"],
+            total,
+            paid,
+            total - paid
+        ))
+        db.commit()
+        return redirect("/collaborations")
+
+    return render_template("add_collaboration.html")
+
+@app.route("/collaborations/<int:cid>", methods=["GET", "POST"])
+def view_collaboration(cid):
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("SELECT * FROM collaborations WHERE id=?", (cid,))
+    collab = cur.fetchone()
+
+    if not collab:
+        return "Collaboration Not Found", 404
+
+    # ✅ FETCH INTERACTIONS (THIS WAS MISSING)
+    cur.execute("""
+        SELECT * FROM collaboration_interactions
+        WHERE collaboration_id=?
+        ORDER BY date DESC
+    """, (cid,))
+    interactions = cur.fetchall()
+
+    # ✅ attach interactions without changing structure
+    collab_dict = dict(collab)
+    collab_dict["interactions"] = interactions
+
+    return render_template(
+        "collaboration_detail.html",
+        collab=collab_dict
+    )
+
+@app.route("/collaborations/<int:cid>/interaction/add", methods=["POST"])
+def add_collaboration_interaction(cid):
+    if "username" not in session:
+        return redirect("/login")
+
+    note = request.form["note"]
+    date_val = request.form["date"]
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("""
+        INSERT INTO collaboration_interactions (collaboration_id, note, date)
+        VALUES (?, ?, ?)
+    """, (cid, note, date_val))
+    db.commit()
+
+    return redirect(f"/collaborations/{cid}")
+@app.route("/collaborations/<int:cid>/interaction/delete/<int:iid>")
+def delete_collaboration_interaction(cid, iid):
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("DELETE FROM collaboration_interactions WHERE id=?", (iid,))
+    db.commit()
+    return redirect(f"/collaborations/{cid}")
+
+# ---------------- EDIT COLLABORATION ----------------
+@app.route("/collaborations/<int:cid>/edit", methods=["GET", "POST"])
+def edit_collaboration(cid):
+    if "username" not in session:
+        return redirect("/login")
+
+    db = get_db()
+    cur = db.cursor()
+
+    if request.method == "POST":
+        total = int(request.form["total_amount"])
+        paid = int(request.form["paid_amount"])
+
+        cur.execute("""
+            UPDATE collaborations SET
+            supplier=?,
+            category=?,
+            service=?,
+            contact_person=?,
+            contact_number=?,
+            email=?,
+            start_date=?,
+            due_date=?,
+            total_amount=?,
+            paid_amount=?,
+            pending_amount=?
+            WHERE id=?
+        """, (
+            request.form["supplier"],
+            request.form["category"],
+            request.form["service"],
+            request.form["contact_person"],
+            request.form["contact_number"],
+            request.form["email"],
+            request.form["start_date"],
+            request.form["due_date"],
+            total,
+            paid,
+            total - paid,
+            cid
+        ))
+        db.commit()
+        return redirect(f"/collaborations/{cid}")
+
+    cur.execute("SELECT * FROM collaborations WHERE id=?", (cid,))
+    collab = cur.fetchone()
+
+    if not collab:
+        return "Collaboration Not Found", 404
+
+    return render_template(
+        "add_collaboration.html",
+        collab=collab,
+        collab_id=cid
+    )
+
+@app.route("/collaborations/delete/<int:cid>")
+def delete_collaboration(cid):
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("DELETE FROM collaborations WHERE id=?", (cid,))
+    db.commit()
+    return redirect("/collaborations")
+
+# ================= REVENUE =================
+@app.route("/revenue/actual")
+def actual_revenue():
+    if session["role"] != "superadmin":
+        return redirect("/dashboard")
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("SELECT SUM(sold_price) FROM properties WHERE status='Sold'")
+    p = cur.fetchone()[0] or 0
+
+    cur.execute("SELECT SUM(paid_amount) FROM collaborations")
+    c = cur.fetchone()[0] or 0
+
+    revenue = {
+        "property_total": p,
+        "collaboration_total": c,
+        "grand_total": p + c,
+        "profit": p + c
+    }
+
+    return render_template("revenue_actual.html", revenue=revenue)
+
+@app.route("/revenue/adjusted")
+def adjusted_revenue():
+    if session["role"] != "admin":
+        return redirect("/dashboard")
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("SELECT SUM(sold_price) FROM properties WHERE status='Sold'")
+    p = cur.fetchone()[0] or 0
+
+    cur.execute("SELECT SUM(paid_amount) FROM collaborations")
+    c = cur.fetchone()[0] or 0
+
+    revenue = {
+        "property_total": int(p * 0.9),
+        "collaboration_total": int(c * 0.9),
+        "grand_total": int((p + c) * 0.9)
+    }
+
+    return render_template("revenue_adjusted.html", revenue=revenue)
+
+# ---------------- LOGOUT ----------------
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
+
+if __name__ == "__main__":
+    app.run(debug=True)

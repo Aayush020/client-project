@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Add Property</title>
+<style>
+/* ================= GLOBAL STYLES ================= */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e6f0fa;
+    margin: 0;
+    padding: 30px;
+    color: #1f2937;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 26px;
+    font-weight: 600;
+    color: #0d3b66;
+}
+
+/* ================= CARD ================= */
+.card {
+    max-width: 600px;
+    margin: auto;
+    background: #ffffff;
+    padding: 30px 25px;
+    border-radius: 16px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+
+/* ================= FORM ELEMENTS ================= */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input, select, button {
+    width: 100%;
+    padding: 12px 15px;
+    margin-top: 12px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px rgba(59,130,246,0.2);
+}
+
+/* ================= BUTTON ================= */
+button {
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 12px rgba(59,130,246,0.25);
+}
+
+button:hover {
+    background: #1e40af;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(30,64,175,0.35);
+}
+
+/* ================= BACK LINK ================= */
+a {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    color: #3b82f6;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: #1e40af;
+    transform: scale(1.02);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 600px) {
+    .card {
+        padding: 25px 20px;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+
+    input, select, button {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Add New Property</h2>
+
+    <form method="post">
+        <input name="title" placeholder="Property Title" required>
+
+        <select name="type" required>
+            <option value="">Select Property Type</option>
+            <option>Apartment</option>
+<option>Villa</option>
+<option>Flat / Apartment</option>
+<option>Studio Apartment</option>
+<option>Penthouse</option>
+<option>Row House / Townhouse</option>
+
+<option>Plot</option>
+<option>Residential Plot</option>
+<option>Commercial Plot</option>
+
+<option>Commercial</option>
+<option>Shop / Showroom</option>
+<option>Office Space</option>
+<option>IT / Tech Park</option>
+<option>Co-working Space</option>
+
+<option>Warehouse / Godown</option>
+<option>Industrial Unit</option>
+<option>Factory</option>
+
+<option>Agricultural - NA</option>
+<option>Agricultural - Non NA</option>
+<option>Farm House</option>
+
+<option>Rental - Residential</option>
+<option>Rental - Commercial</option>
+<option>Rental - Shop</option>
+<option>Rental - Office</option>
+<option>Rental - Warehouse</option>
+
+<option>Hotel / Resort</option>
+<option>PG / Hostel</option>
+<option>Banquet Hall</option>
+<option>Mall Space</option>
+
+<option>Land with Construction</option>
+<option>Redevelopment Property</option>
+<option>Joint Venture Property</option>
+
+        </select>
+
+        <input name="location" placeholder="Location" required>
+        <input name="size" placeholder="Size (sq.ft)">
+        <input name="price" placeholder="Display Price" required>
+        <input name="owner" placeholder="Owner Name" required>
+        <input name="contact" placeholder="Contact Number" required>
+
+        <button>Save Property</button>
+    </form>
+
+    <a href="/properties">⬅ Back to Properties</a>
+</div>
+
+</body>
+</html>

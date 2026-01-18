@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard – Admin</title>
+<style>
+/* ================= GLOBAL ================= */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e6f0fa;
+    margin: 0;
+    padding: 30px;
+    color: #1f2937;
+    transition: background 0.3s;
+}
+
+h2 {
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 600;
+    color: #0d3b66;
+}
+
+/* ================= GRID ================= */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+}
+
+/* ================= CARDS ================= */
+.card {
+    background: #ffffff;
+    padding: 25px 20px;
+    border-radius: 16px;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(135deg, #cce4f6, #a1d4fa, #6fb1fc);
+    opacity: 0.15;
+    transform: rotate(25deg);
+    transition: all 0.5s ease;
+    z-index: 0;
+    border-radius: 50%;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+}
+
+.card:hover::before {
+    opacity: 0.25;
+}
+
+.card * {
+    position: relative;
+    z-index: 1;
+}
+
+/* ================= CARD CONTENT ================= */
+.card div:first-child {
+    font-size: 15px;
+    font-weight: 500;
+    color: #3b82f6;
+    margin-bottom: 10px;
+}
+
+.value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0d3b66;
+    transition: color 0.3s;
+}
+
+.card.revenue div:first-child {
+    color: #ffffff;
+}
+
+.card.revenue {
+    background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+    color: #fff;
+}
+
+/* ================= BUTTONS ================= */
+.actions {
+    margin-top: 35px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 12px;
+    background: #3b82f6;
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+    margin-right: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn:hover {
+    background: #1e40af;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(30, 64, 175, 0.4);
+}
+
+.logout {
+    color: #dc2626;
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.logout:hover {
+    color: #b91c1c;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 600px) {
+    h2 {
+        font-size: 22px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .value {
+        font-size: 24px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
+</style>
+</head>
+<body>
+
+<h2>Welcome {{ username }} (Admin)</h2>
+
+<div class="grid">
+    <div class="card">
+        Total Properties
+        <div class="value">{{ stats.total_properties }}</div>
+    </div>
+
+    <div class="card">
+        Total Sold
+        <div class="value">{{ stats.total_sold }}</div>
+    </div>
+
+    <div class="card">
+        Completed Collaborations
+        <div class="value">{{ stats.collab_completed }}</div>
+    </div>
+
+    <div class="card">
+        Total Collaborations
+        <div class="value">{{ stats.total_collab }}</div>
+    </div>
+
+
+</div>
+
+<div class="actions">
+    <a href="/revenue/adjusted" class="btn">View Revenue</a>
+    <a href="/properties" class="btn">Manage Properties</a>
+    <a href="/collaborations" class="btn">Collaborations</a>
+    <a href="/logout" class="logout">Logout</a>
+</div>
+
+</body>
+</html>

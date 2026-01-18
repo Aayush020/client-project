@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Properties</title>
+<style>
+/* ================= GLOBAL ================= */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e0f2fe;
+    margin: 0;
+    padding: 30px;
+    color: #1f2937;
+}
+
+/* ================= HEADER ================= */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.header h2 {
+    color: #0d3b66;
+    margin: 0;
+    font-size: 26px;
+}
+
+.header a {
+    text-decoration: none;
+    color: #3b82f6;
+    font-weight: 600;
+    margin-left: 15px;
+    transition: all 0.3s ease;
+}
+
+.header a:hover {
+    color: #1e40af;
+    text-decoration: underline;
+}
+
+/* ================= SEARCH ================= */
+.search-box {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.search-box input {
+    padding: 10px;
+    width: 260px;
+    border-radius: 8px;
+    border: 1px solid #cbd5f5;
+    font-size: 14px;
+}
+
+.search-box button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.search-box button:hover {
+    background: #1e40af;
+}
+
+/* ================= CARD ================= */
+.card {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+    overflow-x: auto;
+}
+
+/* ================= TABLE ================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+th, td {
+    padding: 14px 12px;
+    text-align: left;
+    transition: background 0.3s ease;
+}
+
+th {
+    background: #bfdbfe;
+    color: #1e3a8a;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+tr:hover {
+    background: #f0f9ff;
+}
+
+td a {
+    margin-right: 12px;
+    text-decoration: none;
+    color: #3b82f6;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+td a:hover {
+    color: #1e40af;
+    text-decoration: underline;
+}
+
+/* ================= STATUS STYLING ================= */
+.sold {
+    color: #16a34a;
+    font-weight: bold;
+}
+
+.available {
+    color: #2563eb;
+    font-weight: bold;
+}
+
+/* ================= DELETE ================= */
+.delete {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.delete:hover {
+    text-decoration: underline;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 600px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    table, th, td {
+        font-size: 14px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h2>Properties</h2>
+    <div>
+        <a href="/properties/add"> Add Property</a> |
+        <a href="/dashboard">⬅ Dashboard</a>
+    </div>
+</div>
+
+<div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search by type, location, status...">
+    <button onclick="searchTable()">Search</button>
+</div>
+
+<div class="card">
+<table id="propertyTable">
+<tr>
+    <th>Title</th>
+    <th>Type</th>
+    <th>Location</th>
+    <th>Status</th>
+    <th>Actions</th>
+</tr>
+
+{% for p in properties %}
+<tr>
+    <td>{{ p.title }}</td>
+    <td>{{ p.type }}</td>
+    <td>{{ p.location }}</td>
+    <td>
+        {% if p.status == 'Sold' %}
+            <span class="sold">Sold</span>
+        {% else %}
+            <span class="available">Available</span>
+        {% endif %}
+    </td>
+    <td>
+        <a href="/properties/{{ p._id }}">View</a>
+        <a href="/properties/{{ p._id }}/delete" class="delete"
+           onclick="return confirm('Delete this property?')">Delete</a>
+    </td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<script>
+function searchTable() {
+    var input = document.getElementById("searchInput").value.toLowerCase();
+    var table = document.getElementById("propertyTable");
+    var rows = table.getElementsByTagName("tr");
+
+    for (var i = 1; i < rows.length; i++) {
+        var rowText = rows[i].innerText.toLowerCase();
+        rows[i].style.display = rowText.includes(input) ? "" : "none";
+    }
+}
+</script>
+
+</body>
+</html>

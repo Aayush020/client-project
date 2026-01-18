@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Property Details</title>
+<style>
+body{font-family: Arial, sans-serif; background:#e0f0ff; padding:30px; color:#1f2937;}
+.card{max-width:650px; margin:auto; background:#fff; padding:30px; border-radius:14px; box-shadow:0 10px 20px rgba(0,0,0,0.08); margin-bottom:25px;}
+.card:hover{box-shadow:0 15px 25px rgba(0,0,0,0.12);}
+h2,h3{margin-bottom:15px; color:#1e3a8a;}
+.section-title{color:#2563eb; margin-bottom:12px;}
+p{margin:8px 0;}
+.sold{color:#16a34a;font-weight:bold;}
+.available{color:#2563eb;font-weight:bold;}
+input,textarea{width:100%; padding:10px; margin-top:10px; border-radius:6px; border:1px solid #cbd5f5; font-size:14px;}
+textarea{resize: vertical;}
+button{padding:12px 20px; border-radius:8px; border:none; font-weight:bold; cursor:pointer; transition:0.3s; margin-top:10px;}
+.button-group{display:flex; flex-wrap:wrap; gap:12px; margin-top:15px;}
+.button-primary{background:#2563eb; color:#fff;}
+.button-primary:hover{background:#1e40af;}
+.button-danger{background:#dc2626; color:#fff;}
+.button-danger:hover{background:#b91c1c;}
+.interaction{background:#f8fafc; padding:15px; border-radius:10px; margin-top:10px;}
+a.back-link{display:inline-block; margin-top:15px; color:#2563eb; font-weight:bold; text-decoration:none;}
+a.back-link:hover{color:#1e40af;}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>{{ prop.title }}</h2>
+
+<div class="button-group">
+    <a href="/properties/{{ prop._id }}/edit"><button class="button-primary">Edit Property</button></a>
+    <a href="/properties/{{ prop._id }}/delete" onclick="return confirm('Delete this property?')">
+        <button class="button-danger">Delete Property</button>
+    </a>
+</div>
+
+<p><b>Type:</b> {{ prop.type }}</p>
+<p><b>Location:</b> {{ prop.location }}</p>
+<p><b>Size:</b> {{ prop.size }}</p>
+<p><b>Display Price:</b> ₹ {{ prop.price }}</p>
+<p><b>Owner:</b> {{ prop.owner }}</p>
+<p><b>Contact:</b> {{ prop.contact }}</p>
+
+<p><b>Status:</b>
+{% if prop.status == 'Sold' %}
+    <span class="sold">Sold</span>
+{% else %}
+    <span class="available">Available</span>
+{% endif %}
+</p>
+
+{% if prop.status == 'Sold' %}
+    <p><b>Sold Price:</b> ₹ {{ prop.sold_price }}</p>
+    <p><b>Revenue Difference:</b> ₹ {{ prop.sold_price - prop.price }}</p>
+{% endif %}
+</div>
+{% if prop.status == 'Available' %}
+<div class="card">
+    <h3 class="section-title">Mark Property as Sold</h3>
+    <form method="post" action="/properties/{{ prop._id }}/sold">
+        <input type="number" name="sold_price" placeholder="Sold Price" required>
+        <button class="button-primary">Mark as Sold</button>
+    </form>
+</div>
+{% endif %}
+
+
+<div class="card">
+<h3 class="section-title">Client Interactions</h3>
+
+<form method="post" action="/properties/{{ prop._id }}/interactions/add">
+    <input name="customer_name" placeholder="Client Name" required>
+    <input name="contact" placeholder="Client Contact Number" required>
+    <textarea name="notes" placeholder="Discussion Summary" required></textarea>
+    <button class="button-primary">Add Interaction</button>
+</form>
+
+{% for i in prop.interactions %}
+<div class="interaction">
+<b>{{ i.customer_name }}</b> ({{ i.contact }})<br>
+<small>{{ i.date }}</small>
+<p>{{ i.notes }}</p>
+</div>
+{% else %}
+<p>No interactions yet</p>
+{% endfor %}
+</div>
+
+<a href="/properties" class="back-link">Back to Properties</a>
+
+</body>
+</html>

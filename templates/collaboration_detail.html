@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Collaboration Details</title>
+<style>
+/* ================= GLOBAL ================= */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e6f0fa;
+    margin: 0;
+    padding: 30px;
+    color: #1f2937;
+}
+
+h3, h4 {
+    color: #0d3b66;
+    margin-bottom: 15px;
+}
+
+/* ================= CARD ================= */
+.card {
+    max-width: 800px;
+    margin: auto;
+    background: #ffffff;
+    padding: 30px 25px;
+    border-radius: 16px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+}
+
+button {
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    margin-top: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+button:hover {
+    background: #1e40af;
+}
+
+button.delete {
+    background: #dc2626;
+}
+
+a {
+    text-decoration: none;
+    color: #2563eb;
+}
+
+/* ================= FORM ================= */
+form input, form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    box-sizing: border-box;
+}
+
+form textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* ================= INTERACTIONS ================= */
+.interaction {
+    background: #f0f5fa;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-top: 12px;
+}
+
+.interaction b {
+    color: #1e3a8a;
+}
+
+/* ================= BACK LINK ================= */
+.back-link {
+    display: block;
+    margin-top: 25px;
+    text-align: center;
+    font-weight: 600;
+    color: #2563eb;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h3>{{ collab.supplier }} – Details</h3>
+
+    <!-- Edit Collaboration -->
+    <a href="/collaborations/{{ collab._id }}/edit">
+        <button>Edit Collaboration</button>
+    </a>
+
+    <!-- Collaboration Info -->
+    <p><b>Category:</b> {{ collab.category }}</p>
+    <p><b>Service:</b> {{ collab.service }}</p>
+    <p><b>Total:</b> ₹{{ collab.total_amount }}</p>
+    <p><b>Paid:</b> ₹{{ collab.paid_amount }}</p>
+    <p><b>Pending:</b> ₹{{ collab.pending_amount }}</p>
+    <p><b>Due Date:</b> {{ collab.due_date.strftime('%d-%m-%Y') }}</p>
+
+    <hr>
+
+    <!-- Add Interaction -->
+    <h3>Add New Interaction</h3>
+    <form method="POST" action="/collaborations/{{ collab._id }}/interactions/add">
+        <label>Note:</label>
+        <textarea name="notes" required></textarea>
+        
+        <label>Date:</label>
+        <input type="date" name="interaction_date" value="{{ today|default('') }}" />
+        
+        <button type="submit">Add Interaction</button>
+    </form>
+
+
+
+    <!-- Existing Interactions -->
+    <h4>Interactions</h4>
+    {% for i in collab.interactions %}
+    <div class="interaction">
+        <b>{{ i.date_str }}</b>
+        <p>{{ i.note }}</p>
+        <!-- Delete Interaction -->
+        <form method="POST" action="/collaborations/{{ collab._id }}/interactions/delete/{{ i._id }}" style="display:inline;">
+            <button type="submit" class="delete" onclick="return confirm('Delete this interaction?');">Delete</button>
+        </form>
+    </div>
+    {% else %}
+    <p>No interactions yet</p>
+    {% endfor %}
+
+    <hr>
+
+    <!-- Delete Collaboration -->
+    <form method="POST" action="/collaborations/{{ collab._id }}/delete">
+        <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this collaboration?');">
+            Delete Collaboration
+        </button>
+    </form>
+</div>
+
+<!-- Back Link -->
+<a href="/collaborations" class="back-link">Back to Collaborations</a>
+
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Collaborations</title>
+<style>
+/* ================= GLOBAL ================= */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e6f0fa;
+    margin: 0;
+    padding: 30px;
+    color: #1f2937;
+}
+
+h2 {
+    color: #0d3b66;
+    margin-bottom: 15px;
+}
+
+/* ================= FILTERS ================= */
+.filters a {
+    margin-right: 12px;
+    padding: 8px 16px;
+    background: #dbeafe;
+    border-radius: 8px;
+    display: inline-block;
+    color: #1e40af;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.filters a:hover {
+    background: #bfdbfe;
+    transform: translateY(-2px);
+}
+
+/* ================= LINKS ================= */
+a.add-link {
+    display: inline-block;
+    margin: 15px 0;
+    padding: 8px 14px;
+    background: #3b82f6;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a.add-link:hover {
+    background: #1e40af;
+    transform: translateY(-2px);
+}
+
+/* ================= CARD ================= */
+.card {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+    margin-top: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+
+/* ================= TABLE ================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    padding: 14px 12px;
+    text-align: left;
+    font-size: 14px;
+}
+
+th {
+    background: #e0f2fe;
+    color: #0d3b66;
+    font-weight: 600;
+}
+
+tr {
+    transition: all 0.2s ease;
+}
+
+tr:hover {
+    background: #f0f9ff;
+}
+
+/* ================= STATUS COLORS ================= */
+.status-Expired { color: #dc2626; font-weight: bold; }
+.status-DueSoon { color: #f97316; font-weight: bold; }
+.status-Active { color: #16a34a; font-weight: bold; }
+
+/* ================= ACTION LINKS ================= */
+td a {
+    color: #3b82f6;
+    font-weight: 600;
+    text-decoration: none;
+    margin-right: 8px;
+    transition: all 0.2s ease;
+}
+
+td a:hover {
+    text-decoration: underline;
+    transform: scale(1.05);
+}
+
+td form button.delete {
+    background: none;
+    border: none;
+    color: #dc2626;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+}
+
+td form button.delete:hover {
+    text-decoration: underline;
+    transform: scale(1.05);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 700px) {
+    table, th, td {
+        font-size: 13px;
+    }
+
+    .filters a, a.add-link {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+}
+</style>
+</head>
+<body>
+
+<h2>Collaborations</h2>
+
+<div class="filters">
+    <a href="/collaborations">All</a>
+    <a href="/collaborations?filter=pending">Pending Payments</a>
+    <a href="/collaborations?filter=completed">Completed</a>
+    <a href="/collaborations?filter=due_soon">Due Soon (30 Days)</a>
+</div>
+
+<a href="/collaborations/add" class="add-link">Add Collaboration</a>
+<a href="/dashboard" class="add-link" style="background:#64748b;">⬅ Dashboard</a>
+
+<div class="card">
+<table>
+<tr>
+<th>Supplier</th>
+<th>Category</th>
+<th>Due Date</th>
+<th>Status</th>
+<th>Total</th>
+<th>Paid</th>
+<th>Pending</th>
+<th>Actions</th>
+</tr>
+
+{% for c in collaborations %}
+<tr>
+<td>{{ c.supplier }}</td>
+<td>{{ c.category }}</td>
+<td>{{ c.due_date.strftime('%d-%m-%Y') }}</td>
+<td class="status-{{ c.status|replace(' ', '') }}">{{ c.status }}</td>
+<td>₹{{ c.total_amount }}</td>
+<td>₹{{ c.paid_amount }}</td>
+<td><b>₹{{ c.pending_amount }}</b></td>
+<td>
+    <a href="/collaborations/{{ c._id }}">View</a>
+    <a href="/collaborations/{{ c._id }}/edit">Edit</a>
+    <form method="POST" action="/collaborations/{{ c._id }}/delete" style="display:inline;">
+        <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this collaboration?');">
+            Delete
+        </button>
+    </form>
+</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Edit Property</title>
+<style>
+/* ================= GLOBAL ================= */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e6f0fa;
+    margin: 0;
+    padding: 30px;
+    color: #1f2937;
+}
+
+h2 {
+    color: #0d3b66;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* ================= CARD ================= */
+.card {
+    max-width: 520px;
+    margin: auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+
+/* ================= FORM ELEMENTS ================= */
+input, select, button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5f5;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 6px rgba(59,130,246,0.3);
+    outline: none;
+}
+
+/* ================= BUTTON ================= */
+button {
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    margin-top: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background: #1e40af;
+    transform: translateY(-2px);
+}
+
+/* ================= BACK LINK ================= */
+a.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    color: #3b82f6;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a.back-link:hover {
+    text-decoration: underline;
+    color: #1e40af;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 600px) {
+    .card {
+        padding: 20px;
+    }
+
+    input, select, button {
+        padding: 10px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>Edit Property</h2>
+
+<form method="post" action="/properties/{{ prop._id }}/edit">
+<input name="title" value="{{ prop.title }}" placeholder="Property Title" required>
+
+<select name="type" required>
+<option value="{{ prop.type }}" selected>{{ prop.type }}</option>
+<option>Apartment</option>
+<option>Villa</option>
+<option>Plot</option>
+<option>Commercial</option>
+<option>Agricultural - NA</option>
+<option>Agricultural - Non NA</option>
+<option>Rental - Residential</option>
+<option>Rental - Commercial</option>
+</select>
+
+<input name="location" value="{{ prop.location }}" placeholder="Location" required>
+<input name="size" value="{{ prop.size }}" placeholder="Size (sq.ft)">
+<input type="number" name="price" value="{{ prop.price }}" placeholder="Display Price" required>
+<input name="owner" value="{{ prop.owner }}" placeholder="Owner Name" required>
+<input name="contact" value="{{ prop.contact }}" placeholder="Contact Number" required>
+
+<select name="status">
+    <option value="Available" {% if prop.status == 'Available' %}selected{% endif %}>Available</option>
+    <option value="Sold" {% if prop.status == 'Sold' %}selected{% endif %}>Sold</option>
+</select>
+
+<input type="number" name="sold_price" value="{{ prop.sold_price or 0 }}" placeholder="Sold Price (if applicable)">
+
+<button>Save Changes</button>
+</form>
+
+<a href="/properties/{{ prop._id }}" class="back-link">⬅ Back to Property</a>
+</div>
+
+</body>
+</html>

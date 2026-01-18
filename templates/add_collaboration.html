@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{ "Edit Collaboration" if collab else "Add Collaboration" }}</title>
+<style>
+/* ================= GLOBAL ================= */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #e6f0fa;
+    margin: 0;
+    padding: 30px;
+    color: #1f2937;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 26px;
+    font-weight: 600;
+    color: #0d3b66;
+}
+
+/* ================= CARD ================= */
+.card {
+    max-width: 650px;
+    margin: auto;
+    background: #ffffff;
+    padding: 30px 25px;
+    border-radius: 16px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 18px 35px rgba(0,0,0,0.12);
+}
+
+/* ================= FORM ELEMENTS ================= */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input, select, button, label {
+    width: 100%;
+    padding: 12px 15px;
+    margin-top: 12px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px rgba(59,130,246,0.2);
+}
+
+label {
+    margin-top: 18px;
+    font-weight: 500;
+    color: #0d3b66;
+}
+
+/* ================= BUTTONS ================= */
+button {
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 12px rgba(59,130,246,0.25);
+}
+
+button:hover {
+    background: #1e40af;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(30,64,175,0.35);
+}
+
+.delete {
+    background: #dc2626;
+    margin-top: 15px;
+}
+
+.delete:hover {
+    background: #b91c1c;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(185,28,28,0.35);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 600px) {
+    .card {
+        padding: 25px 20px;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+
+    input, select, button {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h2>{{ "Edit Collaboration" if collab else "Add Collaboration" }}</h2>
+
+    <form method="post">
+        <input name="supplier" placeholder="Supplier" value="{{ collab.supplier if collab }}" required>
+
+        <select name="category" required>
+            <option value="{{ collab.category if collab }}">{{ collab.category if collab else 'Select Category' }}</option>
+            <option>Post</option>
+            <option>Reel</option>
+            <option>Project Reel</option>
+            <option>3D Walkthrough</option>
+            <option>Finance Advisory</option>
+            <option>Legal Advisory</option>
+            <option>Event Management</option>
+            <option>Brand Collaboration</option>
+            <option>Store Collaboration</option>
+            <option>Material Collaboration</option>
+            <option>Drone Collaboration</option>
+            <option>Cement</option>
+            <option>Steel</option>
+            <option>Bricks</option>
+            <option>Sand</option>
+            <option>Interior</option>
+        </select>
+
+        <input name="service" placeholder="Service" value="{{ collab.service if collab }}">
+        <input name="contact_person" placeholder="Contact Person" value="{{ collab.contact_person if collab }}" required>
+        <input name="contact_number" placeholder="Contact Number" value="{{ collab.contact_number if collab }}" required>
+        <input name="email" placeholder="Email" value="{{ collab.email if collab }}">
+
+        <input type="number" name="total_amount" placeholder="Total Amount" value="{{ collab.total_amount if collab }}" required>
+        <input type="number" name="paid_amount" placeholder="Paid Amount" value="{{ collab.paid_amount if collab }}" required>
+
+        <label>Start Date</label>
+        <input type="date" name="start_date" value="{{ collab.start_date|strftime('%Y-%m-%d') if collab.start_date }}" required>
+
+        <label>Due Date</label>
+        <input type="date" name="due_date" value="{{ collab.due_date|strftime('%Y-%m-%d') if collab.due_date }}" required>
+
+        <button>Save Collaboration</button>
+    </form>
+
+    {% if collab %}
+    <form action="/collaborations/{{ collab._id }}/delete" method="POST">
+        <button class="delete">Delete Collaboration</button>
+    </form>
+    {% endif %}
+
+    <br>
+    <a href="/collaborations">Back to Collaborations</a>
+</div>
+
+</body>
+</html>
